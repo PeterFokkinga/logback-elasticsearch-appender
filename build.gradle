@@ -1,0 +1,57 @@
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "maven-publish"
+
+version "1.7-SNAPSHOT"
+sourceCompatibility = 1.8
+jar.baseName = "logback-elasticsearch-appender"
+jar.destinationDir = new File(".")
+group "com.internetitem"
+
+dependencies {
+	compile "ch.qos.logback:logback-classic:1.2.3"
+	compile "ch.qos.logback:logback-access:1.2.3"
+	compile "org.slf4j:slf4j-api:1.6.3"
+	compile "com.fasterxml.jackson.core:jackson-core:2.8.0"
+	compile "com.amazonaws:aws-java-sdk-core:1.11.31"
+	testCompile "junit:junit:4.12"
+	testCompile "org.mockito:mockito-all:1.10.19"
+}
+
+repositories {
+	maven {
+		name "public"
+		url "https://nexus.cit.rug.nl/content/groups/public"
+	}
+}
+
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifactId jar.baseName
+			from components.java
+
+			artifact sourceJar {
+				classifier "sources"
+			}
+		}
+	}
+	repositories {
+		maven {
+			name "cit"
+			if (project.version.endsWith("-SNAPSHOT")) {
+				url "${nexusBaseUrl}/repositories/snapshots"
+			} else {
+				url "${nexusBaseUrl}/repositories/releases"
+			}
+			credentials {
+				username nexusUsername
+				password nexusPassword
+			}
+		}
+	}
+}
